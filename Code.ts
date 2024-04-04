@@ -155,27 +155,31 @@ function anmeldebestätigungFromMenu() {
     return;
   }
 
-  sendeBestätigung(sheet, row, rowValues);
+  sendeBestätigung(sheet, row, rowValues, true);
 }
 
 function sendeBestätigung(
   sheet: GoogleAppsScript.Spreadsheet.Sheet,
   row: number,
   rowValues: any[],
+  erfolg: boolean,
 ) {
   // setting up mail
   let emailTo: string = rowValues[mailIndex - 1];
-  let subject: string = "Bestätigung Deiner Anmeldung";
+  let subject: string = erfolg
+    ? "Bestätigung deiner Anmeldung"
+    : "Leider erfolglose Anmeldung";
   let vorname: string = rowValues[vornameIndex - 1];
   let nachname: string = rowValues[nachnameIndex - 1];
 
   let anrede: string = anredeText(vorname, nachname);
-  let termin: string = date2Str(rowValues[terminIndex - 1]);
+  let termin: string = rowValues[anmeldeTerminIndex - 1];
 
   let template: GoogleAppsScript.HTML.HtmlTemplate =
     HtmlService.createTemplateFromFile("emailBestätigung.html");
   template.anrede = anrede;
   template.termin = termin;
+  template.erfolg = erfolg;
 
   let htmlText: string = template.evaluate().getContent();
   let textbody = "HTML only";
@@ -257,12 +261,14 @@ function checkAnmeldung(e: SSEvent) {
         rowValues[nachnameIndex - 1].trim().toLowerCase()
     ) {
       anmeldungenSheet.getRange(row, 1).setNote("Doppelt");
+      sendeBestätigung(sheet, row, rowValues, true);
       return;
     }
   }
 
   let restChanged = false;
   let terminFound = false;
+  let erfolg = true;
   for (let j = 0; j < termineVals.length; j++) {
     let termineRow = termineVals[j];
     if (!termineRow[0]) continue;
@@ -272,6 +278,7 @@ function checkAnmeldung(e: SSEvent) {
       let rest = termineSheet.getRange(2 + j, restPlätzeIndex).getValue();
       if (rest <= 0) {
         Logger.log("Termin '" + termin1 + "' überbucht!");
+        erfolg = false;
         sheet.getRange(row, 1).setNote("Überbucht");
       } else {
         termineSheet.getRange(2 + j, restPlätzeIndex).setValue(rest - 1);
@@ -287,7 +294,7 @@ function checkAnmeldung(e: SSEvent) {
   if (restChanged) {
     updateForm();
   }
-  sendeBestätigung(sheet, row, rowValues);
+  sendeBestätigung(sheet, row, rowValues, erfolg);
 }
 
 function update() {

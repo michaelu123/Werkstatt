@@ -6,11 +6,19 @@
   <body>
     <p>
       <?= anrede ?>,<br />
-      Du bist für die Selbsthilfewerkstatt am<br />
+      <?  if (erfolg) { ?>
+        Du bist für die Selbsthilfewerkstatt am<br />
         <p>
           <bold><?= termin ?></bold>
         </p>
-      angemeldet. Bitte sei pünktlich um 17:00 da, da wir je nach Andrang Deinen Platz sonst an jemand anderen vergeben.<br />
+        angemeldet. Bitte sei pünktlich um 17:00 da, da wir je nach Andrang Deinen Platz sonst an jemand anderen vergeben.<br />
+      <? } else { ?>
+        Deine Anmeldung für die Selbsthilfewerkstatt am<br />
+        <p>
+          <bold><?= termin ?></bold>
+        </p>
+        hat leider nicht geklappt. Jemand anders war wohl schneller...<br />
+      <? } ?>
       Mit freundlichen Grüßen,<br />
       <br />
       Selbsthilfewerkstatt Allgemeiner Deutscher Fahrrad-Club München e.V.<br />
